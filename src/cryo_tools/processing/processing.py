@@ -2,7 +2,6 @@ import numpy as np
 
 
 def pad_image(image, image_params):
-
     pad_width = int(np.ceil(image_params["N_PIXELS"] * 0.1)) + 1
     padded_image = np.pad(image, pad_width=pad_width)
 
@@ -10,11 +9,10 @@ def pad_image(image, image_params):
 
 
 def apply_ctf(image, image_params, proc_params):
-    def calc_ctf(n_pixels, amp, phase, b_factor):
-
+    def calc_ctf(n_pixels, pixel_size, amp, phase, b_factor):
         ctf = np.zeros((n_pixels, n_pixels), dtype=np.complex128)
 
-        freq_pix_1d = np.fft.fftfreq(n_pixels, d=image_params["PIXEL_SIZE"])
+        freq_pix_1d = np.fft.fftfreq(n_pixels, d=pixel_size)
 
         x, y = np.meshgrid(freq_pix_1d, freq_pix_1d)
 
@@ -33,7 +31,13 @@ def apply_ctf(image, image_params, proc_params):
     elecwavel = 0.019866
     phase = proc_params["DEFOCUS"] * np.pi * 2.0 * 10000 * elecwavel
 
-    ctf = calc_ctf(image.shape[0], proc_params["AMP"], phase, proc_params["B_FACTOR"])
+    ctf = calc_ctf(
+        image.shape[0],
+        image_params["PIXEL_SIZE"],
+        proc_params["AMP"],
+        phase,
+        proc_params["B_FACTOR"],
+    )
 
     conv_image_ctf = np.fft.fft2(image) * ctf
 
@@ -43,7 +47,6 @@ def apply_ctf(image, image_params, proc_params):
 
 
 def apply_random_shift(padded_image, image_params):
-
     shift_x = int(np.ceil(image_params["N_PIXELS"] * 0.1 * (2 * np.random.rand() - 1)))
     shift_y = int(np.ceil(image_params["N_PIXELS"] * 0.1 * (2 * np.random.rand() - 1)))
 
@@ -61,7 +64,6 @@ def apply_random_shift(padded_image, image_params):
 
 
 def add_noise(img, proc_params):
-
     # mean_image = np.mean(img)
     std_image = np.std(img)
 
@@ -79,7 +81,6 @@ def add_noise(img, proc_params):
 
 
 def gaussian_normalize_image(image):
-
     mean_img = np.mean(image)
     std_img = np.std(image)
 

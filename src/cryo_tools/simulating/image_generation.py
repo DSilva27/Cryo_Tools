@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial.transform import Rotation
 
+
 def gen_quat(size):
     # Sonya's code
 
@@ -8,7 +9,6 @@ def gen_quat(size):
 
     count = 0
     while count < size:
-
         quat = np.random.uniform(
             -1, 1, 4
         )  # note this is a half-open interval, so 1 is not included but -1 is
@@ -20,18 +20,18 @@ def gen_quat(size):
 
     return quats
 
-def rot_coordinates(coord, quat=None):
 
+def rot_coordinates(coord, quat=None):
     if quat is None:
         quat = gen_quat(1)[0]
-        
+
     rot_mat = Rotation.from_quat(quat).as_matrix()
     rot_coord = np.matmul(rot_mat, coord)
 
-    return rot_coord
+    return rot_coord, quat
+
 
 def gen_img(coord, image_params):
-
     n_atoms = coord.shape[1]
     norm = 1 / (2 * np.pi * image_params["SIGMA"] ** 2 * n_atoms)
 
