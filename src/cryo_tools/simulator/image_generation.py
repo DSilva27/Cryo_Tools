@@ -43,7 +43,50 @@ def projection(
     )
     image = jnp.matmul(gauss_z, gauss_y.T)
 
+    image /= jnp.linalg.norm(image)
+
     return image
+
+
+@partial(jax.jit, static_argnames=["pixel_size", "box_size"])
+def projection_impl_solv(
+    coords: ArrayLike,
+    struct_info: ArrayLike,
+    box_size: int,
+    pixel_size: float,
+    res: float,
+    freq_cutoff: float = None
+) -> ArrayLike:
+    # assert pixel_size < 2.0 * res, "Pixel size should be smaller than 2.0 * res due to the Nyquist limit."
+
+    if freq_cutoff is None:
+        freq_cutoff = pixel_size * 4.0
+
+    gauss_var = 4 * struct_info[0, :] * res**2
+    gauss_amp = struct_info[1, :] / jnp.sqrt(gauss_var * 2.0 * jnp.pi)
+
+    # Project
+    grid_min = -pixel_size * box_size * 0.5
+    grid_max = pixel_size * box_size * 0.5
+    grid = jnp.arange(grid_min, grid_max, pixel_size)[0:box_size]
+
+    gauss_z = gauss_amp * jnp.exp(
+        -0.5 * (((grid[:, None] - coords[2, :]) / gauss_var) ** 2)
+    )
+    gauss_y = gauss_amp * jnp.exp(
+        -0.5 * (((grid[:, None] - coords[1, :]) / gauss_var) ** 2)
+    )
+    image = jnp.matmul(gauss_z, gauss_y.T)
+
+    freq_pix_1d = jnp.fft.fftfreq(box_size, d=pixel_size)
+    freq2_2d = freq_pix_1d[:, None] ** 2 + freq_pix_1d[None, :] ** 2
+
+    image = 0.5 * jnp.fft.ifft2(jnp.fft.fft2(image) * (freq2_2d < freq_cutoff)).real
+
+    image /= jnp.linalg.norm(image)
+
+    return image
+
 
 
 @partial(jax.jit, static_argnames=["pixel_size", "box_size"])

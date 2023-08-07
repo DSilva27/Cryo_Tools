@@ -1,0 +1,29 @@
+[project]
+name = "Cryo_Tools"
+authors = [
+    {name = "David Silva Sanchez", email = "david.silva@yale.edu"},
+]
+
+description = "My package description"
+readme = "README.rst"
+requires-python = ">=3.7"
+keywords = ["CryoEM", "Molecular Dynamics", "single particle"]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+
+dependencies = [
+    "numpy",
+    "jax",
+    "matplotlib",
+]
+
+
+dynamic = ["version"]
+
+[project.scripts]
+my-script = "my_package.module:function"
+
+# ... other project metadata fields as specified in:
+#     https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
